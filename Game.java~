@@ -1,0 +1,6 @@
+/**
+ * The class which runs the game
+ * @author Greg Flynn
+ */
+public class Game{
+}
