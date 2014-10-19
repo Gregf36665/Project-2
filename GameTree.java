@@ -77,6 +77,9 @@ public class GameTree{
     }
   }
   
+  /**
+   * Calculate which path is the best to take
+   */
   public void update(){
     root.updateAll();
   }
