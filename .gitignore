@@ -1,0 +1,8 @@
+#ignore .java~ files
+*.java\~
+
+#ignore .class files
+*.class
+
+#ignore doc
+*/doc/*
