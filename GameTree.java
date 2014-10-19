@@ -48,6 +48,10 @@ public class GameTree{
     return root.getValue();
   }
   
+  /**
+   * the amount of marbles at the node
+   * @return the number of marbles
+   */
   public int rootSize(){
     return root.size();
   }
