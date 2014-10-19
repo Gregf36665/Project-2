@@ -1,2 +1,97 @@
+/**
+ * A minmax tree for the AI to solve the best moves
+ * @author Greg Flynn
+ */
+
 public class GameTree{
+  
+  /**
+   * Does the player go first?
+   */
+  private boolean player;
+  
+  /**
+   * The root of the GameTree
+   */
+  private GameTreeNode root;
+  
+  public GameTree(boolean player, Marbles m){
+    this.player=player;
+    root = new GameTreeNode(m.count(),player);
+  }
+  
+  
+  /**
+   * The nodes for the minmax tree.  If the player has won
+   * then the value for the node is 1.  If the player has lost
+   * then the value for the node is -1.  Else it is 0.
+   */
+  class GameTreeNode{
+    /**
+     * The amount of items left in the pile
+     */
+    private int size;
+    /**
+     * Remove 3 elements
+     */
+    private GameTreeNode rm3;
+    /**
+     * Remove 5 elements
+     */
+    private GameTreeNode rm5;
+    /**
+     * Remove 7 elements
+     */
+    private GameTreeNode rm7;
+    /**
+     * Remove 11 elements
+     */
+    private GameTreeNode rm11;
+    
+    /**
+     * The value of the node, 0 by default
+     */
+    private int value = 0;
+    
+    /**
+     * Is it the player's turn?
+     */
+    private boolean player;
+    
+    /**
+     * The constructor
+     * @param size how many elements are there in the pile
+     */
+    public GameTreeNode (int size, boolean player){
+      this.size = size;
+      this.player = player;
+      if (size < 3) value = player ? -1:1;
+    }
+    
+    /**
+     * Calculate the next step
+     */
+    public void extend(){
+      if(size - 3 > 0) rm3 = new GameTreeNode(size-3,!player);
+      if(size - 5 > 0) rm5 = new GameTreeNode(size-5,!player);
+      if(size - 7 > 0) rm7 = new GameTreeNode(size-7,!player);
+      if(size - 11 > 0) rm11 = new GameTreeNode(size-11,!player);
+    }
+    
+    /**
+     * Calculate to a certain depth
+     * @param depth how far to calculate
+     */
+    public void extend(int depth){
+      if (depth == 0) return;
+      extend();
+      depth--;
+      if (rm3 != null) rm3.extend(depth);
+      if (rm5 != null) rm5.extend(depth);
+      if (rm7 != null) rm7.extend(depth);
+      if (rm11 != null) rm11.extend(depth);
+    }
+    
+    
+  }
 }

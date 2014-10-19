@@ -13,7 +13,7 @@ public class Marbles{
   /**
    * This is choices for elements that can be removed
    */
-  private final ArrayList<Integer> primes = new ArrayList<Integer>(5);
+  private ArrayList<Integer> primes = new ArrayList<Integer>(5);
   
   
   /**
@@ -21,14 +21,35 @@ public class Marbles{
    * with a certain amount of elements
    * 
    * @param elements the number of items in the pile
+   * @param max the most elements that can be removed at one time
    */
-  public Marbles(int elements){
+  public Marbles(int elements, int max){
     this.elements = elements;
-    primes.add(2);
-    primes.add(3);
-    primes.add(5);
-    primes.add(7);
-    primes.add(11);
+    if (max > 2) primes.add(3);
+    if (max > 4) primes.add(5);
+    if (max > 6) primes.add(7);
+    if (max > 10) primes.add(11);
+    if (!primes.contains(max)) System.out.println(max + " is not prime");
+    printRemovable();
+  }
+  
+  /**
+   * Print out what elements can be removed
+   */
+  public void printRemovable(){
+    System.out.print("Removable items: ");
+    for (int i : primes){
+      System.out.print(i+",");
+    }
+    System.out.println();
+  }
+  
+  /**
+   * Returns the legal moves
+   * @return the number of pieces that can be removed
+   */
+  public ArrayList<Integer> legal(){
+    return this.primes;
   }
   
   /**
@@ -59,6 +80,14 @@ public class Marbles{
     return this.elements;
   }
   
+  
+  /**
+   * Is the pile in a winning position? If there are less than 3 pieces left then that is a win.
+   * @return can a move be done on the pile
+   */
+  public boolean win(){
+    return (elements < 3);
+  }
   /**
    * An exception class to detect if there will be negative items in the pile
    */
@@ -98,7 +127,7 @@ public class Marbles{
      */
     @Override
     public String getMessage(){
-      return "Non prime number attempted to be removed from the stack";
+      return "Non prime number attempted to be removed from the pile";
     }
   }
 }

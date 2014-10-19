@@ -14,7 +14,7 @@ public class MarblesTest extends TestCase {
    * one will be called when running JUnit over this class.)
    */
   public void testEmpty() {
-    Marbles m = new Marbles(0);
+    Marbles m = new Marbles(0,3);
     try{
     m.remove(2);
     assert(false);
@@ -27,8 +27,35 @@ public class MarblesTest extends TestCase {
     }
   }
   
+  
+  public void testBadMax(){
+    try{
+      Marbles m = new Marbles(0,2);
+      assert(false);
+    }
+    catch (RuntimeException e){
+      assert(true);
+    }
+  }
+  
+  public void testAboveMax() {
+    Marbles m = new Marbles(15,3);
+    try{
+    m.remove(7);
+    assert(false);
+    }
+    catch(Marbles.EmptyPile e){
+      assert(false);
+    }
+    catch(Marbles.NotPrime e){
+      assert(true);
+    }
+    assert(m.count()==15);
+  }
+    
+  
   public void testNotPrime() {
-    Marbles m = new Marbles(5);
+    Marbles m = new Marbles(5,3);
     try{
     m.remove(4);
     assert(false);
@@ -42,7 +69,7 @@ public class MarblesTest extends TestCase {
   }
   
   public void testGood() {
-    Marbles m = new Marbles(5);
+    Marbles m = new Marbles(5,3);
     try{
     m.remove(3);
     assert(true);
@@ -56,7 +83,7 @@ public class MarblesTest extends TestCase {
   }
   
   public void testRemoveCountGood(){
-    Marbles m = new Marbles(10);
+    Marbles m = new Marbles(10,3);
     try{
       m.remove(3);
     }
@@ -67,7 +94,7 @@ public class MarblesTest extends TestCase {
   }
   
   public void testRemoveTo0(){
-    Marbles m = new Marbles(3);
+    Marbles m = new Marbles(3,3);
     try{
       m.remove(3);
     }
@@ -78,7 +105,7 @@ public class MarblesTest extends TestCase {
   }
   
   public void testRemoveCountNotPrime(){
-    Marbles m = new Marbles(10);
+    Marbles m = new Marbles(10,3);
     try{
       m.remove(6);
     }
@@ -92,7 +119,7 @@ public class MarblesTest extends TestCase {
   }
   
   public void testRemoveCount(){
-    Marbles m = new Marbles(10);
+    Marbles m = new Marbles(10,3);
     try{
       m.remove(11);
     }
@@ -103,5 +130,24 @@ public class MarblesTest extends TestCase {
       assert(true);
     }
     assert(m.count()==10);
+  }
+  
+  public void testNotWin(){
+    Marbles m = new Marbles(10,11);
+    assert(!m.win());
+  }
+  
+  public void testWin(){
+    Marbles m = new Marbles(9,11);
+     try{
+      m.remove(7);     
+    }
+    catch(Marbles.NotPrime e){
+      assert(false);
+    }
+    catch(Marbles.EmptyPile e){
+      assert(false);
+    }
+    assert(m.win());
   }
 }
