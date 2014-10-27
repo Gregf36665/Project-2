@@ -1,29 +1,25 @@
-import java.util.ArrayList;
+//import java.util.ArrayList;
 
 /**
  * A class for the AI
  */
 public class Computer{
-  
+
   /**
-   * The list of legal moves
+   * A tree of moves
    */
-  private ArrayList<Integer> legal;
-  
+  public GameTree g;
   /**
    * The next value to remove from the pile
    */
-  private int rm;
+  //private int rm;
   
-  public Computer(Marbles m){
-    this.legal = m.legal();
+  public Computer(boolean player, Marbles m){
+    g = new GameTree(player,m,3);
   }
   
   public int nextRm(){
-    do{
-      rm = (int)(Math.random()*15);
-    }
-    while(!legal.contains(rm));
-  return rm;
+    return 3;
   }
+      
 }

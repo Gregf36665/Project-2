@@ -22,21 +22,11 @@ public class MarblesTest extends TestCase {
     catch(Marbles.EmptyPile e){
       assert(true);
     }
-    catch(Marbles.NotPrime e){
+    catch(Marbles.NotValid e){
       assert(false);
     }
   }
   
-  
-  public void testBadMax(){
-    try{
-      Marbles m = new Marbles(0,2);
-      assert(false);
-    }
-    catch (RuntimeException e){
-      assert(true);
-    }
-  }
   
   public void testAboveMax() {
     Marbles m = new Marbles(15,3);
@@ -47,7 +37,7 @@ public class MarblesTest extends TestCase {
     catch(Marbles.EmptyPile e){
       assert(false);
     }
-    catch(Marbles.NotPrime e){
+    catch(Marbles.NotValid e){
       assert(true);
     }
     assert(m.count()==15);
@@ -63,7 +53,7 @@ public class MarblesTest extends TestCase {
     catch(Marbles.EmptyPile e){
       assert(false);
     }
-    catch(Marbles.NotPrime e){
+    catch(Marbles.NotValid e){
       assert(true);
     }
   }
@@ -77,7 +67,7 @@ public class MarblesTest extends TestCase {
     catch(Marbles.EmptyPile e){
       assert(false);
     }
-    catch(Marbles.NotPrime e){
+    catch(Marbles.NotValid e){
       assert(false);
     }
   }
@@ -109,7 +99,7 @@ public class MarblesTest extends TestCase {
     try{
       m.remove(6);
     }
-    catch(Marbles.NotPrime e){
+    catch(Marbles.NotValid e){
       assert(true);
     }
     catch(Exception e){
@@ -123,7 +113,7 @@ public class MarblesTest extends TestCase {
     try{
       m.remove(11);
     }
-    catch(Marbles.NotPrime e){
+    catch(Marbles.NotValid e){
       assert(false);
     }
     catch(Marbles.EmptyPile e){
@@ -138,11 +128,11 @@ public class MarblesTest extends TestCase {
   }
   
   public void testWin(){
-    Marbles m = new Marbles(9,11);
+    Marbles m = new Marbles(8,11);
      try{
       m.remove(7);     
     }
-    catch(Marbles.NotPrime e){
+    catch(Marbles.NotValid e){
       assert(false);
     }
     catch(Marbles.EmptyPile e){

@@ -13,7 +13,7 @@ public class Marbles{
   /**
    * This is choices for elements that can be removed
    */
-  private ArrayList<Integer> primes = new ArrayList<Integer>(5);
+  private ArrayList<Integer> primes = new ArrayList<Integer>();
   
   
   /**
@@ -25,6 +25,7 @@ public class Marbles{
    */
   public Marbles(int elements, int max){
     this.elements = elements;
+    if (max > 1) primes.add(2);
     if (max > 2) primes.add(3);
     if (max > 4) primes.add(5);
     if (max > 6) primes.add(7);
@@ -62,12 +63,12 @@ public class Marbles{
    * @throws EmptyPile if there are going to be negative elementes in the pile
    * @throws NotPrime if the number is not prime to remove
    */
-  public void remove(int rm) throws EmptyPile, NotPrime{
+  public void remove(int rm) throws EmptyPile, NotValid{
     if (elements-rm<0){
       throw new EmptyPile();
     }
     if (!primes.contains(rm)){
-      throw new NotPrime();
+      throw new NotValid();
     }
     elements -= rm;
   }
@@ -82,11 +83,11 @@ public class Marbles{
   
   
   /**
-   * Is the pile in a winning position? If there are less than 3 pieces left then that is a win.
+   * Is the pile in a winning position? If there are less than 2 pieces left then that is a win.
    * @return can a move be done on the pile
    */
   public boolean win(){
-    return (elements < 3);
+    return (elements < 2);
   }
   /**
    * An exception class to detect if there will be negative items in the pile
@@ -111,14 +112,14 @@ public class Marbles{
   }
   
   /**
-   * An exception class to detect if a number is not prime
+   * An exception class to detect if a number is not a legal move
    */
-  class NotPrime extends Exception{
+  class NotValid extends Exception{
     
     /**
      * Create a new instance of the class
      */
-    public NotPrime(){
+    public NotValid(){
     }
     
     /**
@@ -127,7 +128,7 @@ public class Marbles{
      */
     @Override
     public String getMessage(){
-      return "Non prime number attempted to be removed from the pile";
+      return "Illegal amout of pieces removed";
     }
   }
 }

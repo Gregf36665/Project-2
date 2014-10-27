@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.Iterator;
 /**
  * A minmax tree for the AI to solve the best moves
  * @author Greg Flynn
@@ -14,30 +16,37 @@ public class GameTree{
    * The current position in the GameTree
    */
   private GameTreeNode root;
+   
+  /**
+   * The list of legal moves
+   */
+  private ArrayList<Integer> legalMoves;
   
+  
+  /**
+   * The depth of the game tree
+   */
+  private int depth;
   /**
    * Create a new tree
    * @param player is it the player's turn
    * @param m the stack of marbles
    */
-  public GameTree(boolean player, Marbles m){
+  public GameTree(boolean player, Marbles m,int depth){
     this.player=player;
-    root = new GameTreeNode(m.count(),player);
+    this.legalMoves = m.legal();
+    this.depth = depth;
+    root = new GameTreeNode(m.count(),player,legalMoves);    
   }
   
-  /**
-   * Extend the node tree
-   * @param depth how deep to extend the tree
-   */
-  public void extend(int depth){
-    root.extend(depth);
-  }
+
   
   /**
    * Extend the node tree by 1
    */
   public void extend(){
-    root.extend(1);
+    root.extend(depth);
+    root.updateAll();
   }
   
   /**
@@ -56,33 +65,31 @@ public class GameTree{
     return root.size();
   }
   
+  
   /**
-   * Remove some marbles from the pile
+   * Performs the best move and decends down the tree as
+   * well as updating the tree
+   * @returns the number of pieces to remove to win
    */
-  public void remove(int rm){
-    GameTreeNode old = root;
-    switch(rm){
-      case 3: 
-        if(root.rm3()!= null) root = root.rm3();
-      case 5: 
-        if(root.rm5()!=null) root = root.rm5();
-      case 7: 
-        if(root.rm7()!=null) root = root.rm7();
-      case 11: 
-        if(root.rm11()!=null)root = root.rm11();
-    }
-    if(root!=old){
-      root.extend();
-      update();
-    }
+  public int rmBest(){
+    int currentSize = root.size();
+    root = root.bestMove();
+    extend();
+    return currentSize - root.size();
   }
   
   /**
-   * Calculate which path is the best to take
+   * Remove some marbles from the pile
+   * @param rm the value to remove
    */
-  public void update(){
-    root.updateAll();
+  public void remove(int rm){
+    root = root.remove(rm); 
+    extend();
+   
   }
+  
+  
+  
   
   /**
    * The nodes for the minmax tree.  If the player has won
@@ -96,26 +103,23 @@ public class GameTree{
     private int size;
     
     /**
+     * The list of legal moves
+     */
+    private ArrayList<Integer> legalMoves;
+  
+    /**
+     * An iterator of legal moves
+     */
+    private Iterator<Integer> moves;
+    
+    /**
      * The parent node
      */
     private GameTreeNode parent;
     /**
-     * Remove 3 elements
+     * Children after some amount has been removed
      */
-    private GameTreeNode rm3;
-    /**
-     * Remove 5 elements
-     */
-    private GameTreeNode rm5;
-    /**
-     * Remove 7 elements
-     */
-    private GameTreeNode rm7;
-    /**
-     * Remove 11 elements
-     */
-    private GameTreeNode rm11;
-    
+    private ArrayList<GameTreeNode> children;
     /**
      * The value of the node, 0 by default
      */
@@ -130,12 +134,16 @@ public class GameTree{
      * The constructor for the root
      * @param size how many elements are there in the pile
      * @param player is it the player's turn
+     * @param legalMoves an arrayList of legal moves
      */
-    public GameTreeNode (int size, boolean player){
+    public GameTreeNode (int size, boolean player, ArrayList<Integer> legalMoves){
       this.size = size;
       this.player = player;
-      if (size < 3) value = player ? -1:1;
-      
+      this.children = new ArrayList<GameTreeNode>();
+      if (size < 2) value = player ? -1:1;
+      if (size < 0) value = player ? 1:-1;
+      this.legalMoves = legalMoves;
+      this.moves=legalMoves.iterator();
     }
     
     
@@ -144,21 +152,30 @@ public class GameTree{
      * @param size how many elements are there in the pile
      * @param player is it the player's turn
      * @param n the parent node
+     * @param legalMoves an arrayList of legal moves
      */
-    public GameTreeNode (int size, boolean player, GameTreeNode n){
+    public GameTreeNode (int size, boolean player, GameTreeNode n, ArrayList<Integer> legalMoves){
       this.size = size;
       this.player = player;
-      if (size < 3) value = player ? -1:1;
+      this.children = new ArrayList<GameTreeNode>();
+      if (size < 2) value = player ? -1:1;
+      if (size < 0) value = player ? 1:-1;
       this.parent = n;
+      this.legalMoves = legalMoves;
+      this.moves=legalMoves.iterator();
     }
+    
     /**
      * Calculate the next step
      */
     public void extend(){
-      if(size - 3 > 0) rm3 = new GameTreeNode(size-3,!player,this);
-      if(size - 5 > 0) rm5 = new GameTreeNode(size-5,!player,this);
-      if(size - 7 > 0) rm7 = new GameTreeNode(size-7,!player,this);
-      if(size - 11 > 0) rm11 = new GameTreeNode(size-11,!player,this);
+      while(moves.hasNext()){
+        int rm = moves.next();
+        if(size-rm<0) return;
+        GameTreeNode node = new GameTreeNode(size-rm,!player,this,legalMoves);
+        children.add(node);
+      }
+
     }
     
     /**
@@ -169,46 +186,37 @@ public class GameTree{
       if (depth == 0) return;
       extend();
       depth--;
-      if (rm3 != null) rm3.extend(depth);
-      if (rm5 != null) rm5.extend(depth);
-      if (rm7 != null) rm7.extend(depth);
-      if (rm11 != null) rm11.extend(depth);
+      for (GameTreeNode n : children){
+        n.extend(depth);
+      }
     }
     
 
-    
     /**
-     * Returns the node after 3 is removed from the pile
-     * @return rm3
+     * Finds the best move to do.
+     * @return the node of the most pieces to remove
      */
-    public GameTreeNode rm3(){
-      return this.rm3;
+    public GameTreeNode bestMove(){
+      GameTreeNode rm = null;
+      for (GameTreeNode n : children){
+        if (n.getValue() == -1) return n;
+      }      
+      int next = (int)(Math.random()*children.size());
+      return children.get(next);
     }
     
-    /**
-     * Returns the node after 5 is removed from the pile
-     * @return rm5
-     */
-    public GameTreeNode rm5(){
-      return this.rm5;
-    }
+   /**
+    * Select the next node after the player has removed a certian amount
+    * @param rm the number of pieces removed
+    * @throws RuntimeException if the node doesn't exist
+    */
+    public GameTreeNode remove(int rm){
+      for (GameTreeNode n : children){
+        if (this.size()-n.size()==rm) return n;
+      }
     
-    /**
-     * Returns the node after 7 is removed from the pile
-     * @return rm7
-     */
-    public GameTreeNode rm7(){
-      return this.rm7;
+      throw new RuntimeException("Invalid remove performed according to GameTree");
     }
-    
-    /**
-     * Returns the node after 11 is removed from the pile
-     * @return rm11
-     */
-    public GameTreeNode rm11(){
-      return this.rm11;
-    }
-    
     /**
      * The value of the node (-1,0,1)
      * @return is the position a win
@@ -216,6 +224,7 @@ public class GameTree{
     public int getValue(){
       return this.value;
     }
+    
     /**
      * Returns the amount of marbles left in the pile
      * @return amount of marbles
@@ -237,20 +246,20 @@ public class GameTree{
      */
     public void update(){
       if (parent == null) return;
-      if (this.value == -1) parent.setValue(-1);
+      if (this.value == -1)parent.setValue(-1);
+      
     }
     
     /**
-     * Starts at the root and traverses the entire tree and updates
+     * Starts at the root and traverses the entire tree and then updates
      */
     public void updateAll(){
-      if (rm3()!=null) rm3.updateAll();
-      if (rm5()!=null) rm5.updateAll();
-      if (rm7()!=null) rm7.updateAll();
-      if (rm11()!=null) rm11.updateAll();
+      
+      for(GameTreeNode n : children){
+        n.updateAll();
+      }      
       this.update();
       return;
-    }
-    
+    }    
   }
 }
