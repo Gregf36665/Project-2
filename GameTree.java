@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.AbstractList;
 /**
  * A minmax tree for the AI to solve the best moves
  * @author Greg Flynn
@@ -20,22 +21,25 @@ public class GameTree{
   /**
    * The list of legal moves
    */
-  private ArrayList<Integer> legalMoves;
+  private AbstractList<Integer> legalMoves;
   
   
   /**
    * The depth of the game tree
    */
   private int depth;
+  
   /**
    * Create a new tree
    * @param player is it the player's turn
    * @param m the stack of marbles
+   * @throws RuntimeException if the GameTree has no depth
    */
   public GameTree(boolean player, Marbles m,int depth){
     this.player=player;
     this.legalMoves = m.legal();
     this.depth = depth;
+    if (depth < 1 ) throw new RuntimeException("Depth must be more than 1 for the GameTree!");
     root = new GameTreeNode(m.count(),player,legalMoves);    
   }
   
@@ -69,7 +73,7 @@ public class GameTree{
   /**
    * Performs the best move and decends down the tree as
    * well as updating the tree
-   * @returns the number of pieces to remove to win
+   * @return the number of pieces to remove to win
    */
   public int rmBest(){
     int currentSize = root.size();
@@ -84,8 +88,7 @@ public class GameTree{
    */
   public void remove(int rm){
     root = root.remove(rm); 
-    extend();
-   
+    extend();   
   }
   
   
@@ -105,7 +108,7 @@ public class GameTree{
     /**
      * The list of legal moves
      */
-    private ArrayList<Integer> legalMoves;
+    private AbstractList<Integer> legalMoves;
   
     /**
      * An iterator of legal moves
@@ -119,7 +122,7 @@ public class GameTree{
     /**
      * Children after some amount has been removed
      */
-    private ArrayList<GameTreeNode> children;
+    private AbstractList<GameTreeNode> children;
     /**
      * The value of the node, 0 by default
      */
@@ -136,7 +139,7 @@ public class GameTree{
      * @param player is it the player's turn
      * @param legalMoves an arrayList of legal moves
      */
-    public GameTreeNode (int size, boolean player, ArrayList<Integer> legalMoves){
+    public GameTreeNode (int size, boolean player, AbstractList<Integer> legalMoves){
       this.size = size;
       this.player = player;
       this.children = new ArrayList<GameTreeNode>();
@@ -154,7 +157,7 @@ public class GameTree{
      * @param n the parent node
      * @param legalMoves an arrayList of legal moves
      */
-    public GameTreeNode (int size, boolean player, GameTreeNode n, ArrayList<Integer> legalMoves){
+    public GameTreeNode (int size, boolean player, GameTreeNode n, AbstractList<Integer> legalMoves){
       this.size = size;
       this.player = player;
       this.children = new ArrayList<GameTreeNode>();
@@ -164,6 +167,8 @@ public class GameTree{
       this.legalMoves = legalMoves;
       this.moves=legalMoves.iterator();
     }
+    
+    
     
     /**
      * Calculate the next step
@@ -193,14 +198,17 @@ public class GameTree{
     
 
     /**
-     * Finds the best move to do.
+     * Finds the best move to do.  This algorithm finds the most pieces that can be removed
+     * and still win
      * @return the node of the most pieces to remove
      */
     public GameTreeNode bestMove(){
-      GameTreeNode rm = null;
+      GameTreeNode rm;
+      ArrayList<GameTreeNode> good = new ArrayList<GameTreeNode>();
       for (GameTreeNode n : children){
-        if (n.getValue() == -1) return n;
-      }      
+        if (n.getValue() == -1) good.add(n);
+      }
+      if (good.size()>0) return good.get(good.size()-1);
       int next = (int)(Math.random()*children.size());
       return children.get(next);
     }

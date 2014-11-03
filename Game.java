@@ -1,4 +1,6 @@
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.AbstractList;
 
 /**
  * The class which runs the game
@@ -6,45 +8,28 @@ import java.util.Scanner;
  */
 public class Game{
   
-  /**
-   * The scanner to read in user input
-   */
-  Scanner sc;
-  
-  /**
-   * The initial size of the pile
-   */
+  private Scanner sc;
   private int initSize;
-  
-  /**
-   * The marble pile
-   */
   private Marbles m;
-  
-  /**
-   * The computer
-   */
   private Computer comp;
-  
-  /**
-   * The max amount of pieces to be removed
-   */
-  private int max;
-  
-  /**
-   * Who's turn is it
-   */
+  private AbstractList<Integer> legalMoves;
   private boolean player;
+  private int depth;
   
+  
+  /**
+   * Create a new instance of the game to play against the computer
+   */
   public Game(){
   }
   
   
   /**
    * Run the game
+   * @param sc the scanner for the user input
    */
-  public void run(Scanner sc){
-    sc = new Scanner(System.in);
+  private void run(Scanner sc){
+    legalMoves = new ArrayList<Integer>();
     init(sc);
     while(!m.win()){
       if(player) playUser(sc);
@@ -58,18 +43,20 @@ public class Game{
   }
   
   /**
-   * Create the scanner and start the game
+   * Create the scanner and start the game.
+   * After the game has been run the scanner closes.
    *
    */
-  public void makeScanner(){
+  public void startNewGame(){
     sc = new Scanner(System.in);
     run(sc);
+    sc.close();
   }
   
   /**
    * Who has won?
    */
-  public void winner(){
+  private void winner(){
     if (!m.win()) return;
     System.out.println("There are " + m.count() + " marbles");
     if (!player) System.out.println("Player wins!");
@@ -79,9 +66,9 @@ public class Game{
   
   /**
    * This is the user's ply during the game
-   * @ sc the scanner to read the user input
+   * @param sc the scanner to read the user input
    */
-  public void playUser(Scanner sc){
+  private void playUser(Scanner sc){
     System.out.println("There are "+m.count()+" marbles in the pile.");
     System.out.println("How many marbles do you want to remove?");
     try{
@@ -98,20 +85,16 @@ public class Game{
     }
   }
   
-  
-  /**
-   * This is the computers's ply during the game
-   */
-  public void playComputer(){
-    
-    int rm = comp.nextRm();
-   
+
+
+  private void playComputer(){
     try{
-      m.remove(3);
+      int rm = comp.nextRm();
+      m.remove(rm);
       System.out.println("Computer removes " + rm + " marbles");
       player = true;
     }
-    catch(Exception e){      
+    catch(Exception e){
     }
   }
   
@@ -121,50 +104,151 @@ public class Game{
    * Initialize the game.  Create a new pile of a certain size with a max amount of items to be removed.
    * @param sc the Scanner to read the user input
    */
-  public void init(Scanner sc){
-     System.out.println("Type in the initial size of the pile (20-40)");
-       try{
-         initSize = sc.nextInt();
-         if(initSize < 20){
-           System.out.println("That pile is too small!");
-           init(sc);
-         }
-         if(initSize > 40){
-           System.out.println("That pile is too big!");
-           init(sc);
-         }
-         System.out.println("What is the maximum amount of pieces to be removed?");
-         max = sc.nextInt();
-       }
-       catch(java.util.InputMismatchException e){
-         System.out.println("Invalid number!");
-         init(sc);
-       }
-       try{
-       m = new Marbles(initSize,max);
-       
-       }
-       catch(RuntimeException e){
-         System.out.println(e.getMessage());
-         init(sc);
-       }
-       System.out.println("Who should go first? P or C");
-       String s = sc.next();  
-       if (s.equals("P")) player = true;
-       else if(s.equals("C")) player = false;
-       else{
-         System.out.println("Invalid choice\nPlayer going first");
-         player = true;
-       }
-       comp = new Computer(player,m);
+  private void init(Scanner sc){
+    constants(sc);          
+    m = new Marbles(initSize,legalMoves);       
+    comp = new Computer(player,m,depth);
+    m.printRemovable();
   }
-    
+  
+  
+  private void constants(Scanner sc){
+    initSize = pileSize(sc);
+    legalMoves=validMoves(sc);
+    depth = treeDepth(sc);
+    player = choice(sc);
+  }
+  
+  
+  /***************************Human*inputs*****************************/
+  
+  /**
+   * Pick who should go first.  If the user doesn't
+   * specify 'human' or 'computer' exactly it
+   * goes in a loop until a legal move is specified.
+   * @param sc the scanner to read the user input
+   * @return does the human go first
+   */
+  public boolean choice(Scanner sc){
+    boolean out;
+    System.out.println("Who should go first? 'computer' or 'human'");
+       String s = sc.next();  
+       if (s.equals("human")) out = true;
+       else if(s.equals("computer")) out = false;
+       else{
+         System.out.println("Invalid choice, pick again");  
+         out = choice(sc);
+       }
+    return out;
+  }
+  
+  
+  /**
+   * Define the depth of the game tree for the computer.
+   * If the users puts in an invalid number (double or
+   * NaN or<=0) it loops back and runs the method again
+   * @param sc the scanner to read the user input
+   * @return how deep the game tree should be
+   */
+  public int treeDepth(Scanner sc){
+    int depth;
+    System.out.println("How deep should the game tree be?");
+    try{
+      depth = sc.nextInt();
+      if (depth<1){
+        System.out.println("The tree needs to have some depth!");
+        depth = pileSize(sc);
+      }
+        
+    }
+    catch(java.util.InputMismatchException e){
+         System.out.println("Invalid number!");
+         String badValue = sc.next(); // to remove the bad number
+         depth = pileSize(sc);
+       }
+    return depth;
+  }
+  
+  
+  
+  /**
+   * Set the size of the pile of marbles based on a user input.
+   * If the user puts in an invalid number (double or NaN or <=0)
+   * it loops back and runs the method again.
+   * @param sc the scanner to read the user input
+   * @return the size of the pile
+   */
+  public int pileSize(Scanner sc){
+    int next;
+    System.out.println("How large should the pile be?");
+    try{
+      next = sc.nextInt();
+    }
+    catch(java.util.InputMismatchException e){
+         System.out.println("Invalid number!");
+         String badValue = sc.next(); // to remove the bad number
+         next = pileSize(sc);
+       }
+    if (next < 0){
+      System.out.println("The pile size must be positive!");
+      next = pileSize(sc);
+    }
+    return next;
+  }
+  
+  
+  /**
+   * A method to find a list of numbers from the scanner.
+   * This method assumes that the input is on one line and
+   * each value is seperated by a spacebar.  The method keeps
+   * running until there is a valid list of numbers.
+   * @param sc the scanner to read data from
+   * @return an list of the valid moves
+   */
+  public AbstractList<Integer> validMoves(Scanner sc){
+    AbstractList<Integer> valid = null;
+    while (valid==null){
+      System.out.println("What are valid moves?");
+      valid = getNumbers(sc);
+    }
+    return valid;
+  }
+  
+  
+
+  private ArrayList<Integer> getNumbers(Scanner sc){
+    ArrayList<Integer> num = new ArrayList<Integer>();
+    String next = sc.next();
+    String line = next;
+    try{
+      line += sc.nextLine();
+    }
+    catch(java.util.NoSuchElementException e){
+    }
+    sc = new Scanner(line);
+    while(sc.hasNext()){
+      try{
+        num.add(sc.nextInt());
+      }
+      catch(java.util.InputMismatchException e){
+        System.out.println(sc.next() + " is not a valid option!");
+      }
+    }
+      
+    return num;
+  }
+  
+  
+  /**********************END*Human*inputs********************/
+  
+  
   /**
    * The main method to run the game
    * @param args does nothing
    */
   public static void main(String[] args){
     Game g = new Game();
-    g.makeScanner();
+    g.startNewGame();
   }
+  
 }
