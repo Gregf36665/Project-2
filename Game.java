@@ -79,6 +79,7 @@ public class Game{
       System.err.println(e.getMessage());
     }
     catch(Marbles.EmptyPile e){
+      System.err.println(e.getMessage());
     }
     catch(java.util.InputMismatchException e){
       System.err.println("Not a number");
@@ -115,8 +116,8 @@ public class Game{
   private void constants(Scanner sc){
     initSize = pileSize(sc);
     legalMoves=validMoves(sc);
-    depth = treeDepth(sc);
     player = choice(sc);
+    depth = treeDepth(sc);
   }
   
   

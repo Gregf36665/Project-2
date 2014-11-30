@@ -161,15 +161,28 @@ public class GameTree{
       this.size = size;
       this.player = player;
       this.children = new ArrayList<GameTreeNode>();
-      if (size < 2) value = player ? -1:1;
+      this.legalMoves = legalMoves;
+      if (size < min()) value = player ? -1:1;
       if (size < 0) value = player ? 1:-1;
       this.parent = n;
-      this.legalMoves = legalMoves;
+
       this.moves=legalMoves.iterator();
     }
     
     
     
+    /**
+   * What is the fewest pieces that can be removed
+   * @return the minimum amount of pieces that can be removed
+   */
+  private int min(){
+    int min = Integer.MAX_VALUE;
+    for (int i : legalMoves){
+      if (i < min ) min = i;
+    }
+    return min;
+  }
+  
     /**
      * Calculate the next step
      */
@@ -203,7 +216,7 @@ public class GameTree{
      * @return the node of the most pieces to remove
      */
     public GameTreeNode bestMove(){
-      GameTreeNode rm;
+      
       ArrayList<GameTreeNode> good = new ArrayList<GameTreeNode>();
       for (GameTreeNode n : children){
         if (n.getValue() == -1) good.add(n);
@@ -254,7 +267,7 @@ public class GameTree{
      */
     public void update(){
       if (parent == null) return;
-      if (this.value == -1)parent.setValue(-1);
+      if (this.value == -1) parent.setValue(-1);
       
     }
     

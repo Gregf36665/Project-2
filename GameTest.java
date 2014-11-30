@@ -1,6 +1,5 @@
 import junit.framework.TestCase;
 import java.util.Scanner;
-import java.util.ArrayList;
 import java.util.AbstractList;
 
 /**

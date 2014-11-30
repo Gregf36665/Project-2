@@ -103,7 +103,7 @@ public class GameTreeTest extends TestCase {
   }
   
   public void testValueExtend3Remove1TestBest() {
-        ArrayList<Integer> l = new ArrayList<Integer>();
+    ArrayList<Integer> l = new ArrayList<Integer>();
     l.add(2);
     l.add(3);
     l.add(5);
@@ -116,5 +116,6 @@ public class GameTreeTest extends TestCase {
     t.remove(11);
     assert(t.rmBest()==5);
   }
-        
+       
+  
 }
